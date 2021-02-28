@@ -70,7 +70,6 @@ function viewAllRoles () {
 };
 
 // function to view all employees
-//  still need join to display manager (first and last name)
 function viewAllEmployees() {
     connection.query(
         'SELECT employees.id, employees.first_name, employees.last_name, roles.title AS title, roles.salary AS salary, departments.name AS department, manager_id FROM employees LEFT JOIN roles ON employees.role_id = roles.id LEFT JOIN departments ON roles.department_id = departments.id', 
@@ -137,7 +136,6 @@ function addRole() {
         ],
         function (err, res) {
             if (err) throw err;
-            console.log(res[0], res[0].id);
             var departmentId = res[0].id
         
     
@@ -261,7 +259,30 @@ function updateEmployeeRole() {
         },
     ])
     .then((data) => {
-        console.log(data)
+        connection.query('SELECT id FROM roles WHERE title =?; SELECT id FROM employees WHERE CONCAT( first_name, " ", last_name ) =?', 
+        [
+            data.employee_role,
+            data.employee_update
+        ],
+        function (err, res) {
+            if (err) throw err;
+            var roleId = res[0][0].id;
+            var employeeId = res[1][0].id;
+
+            connection.query('UPDATE employees SET ? WHERE ?',
+            [{
+                role_id: roleId
+            },
+            {
+                id: employeeId
+            }
+            ],
+            function(err, res) {
+                if (err) throw err;
+                console.log(res.affectedRows + ' employee role update!\n');
+            }
+            )
+      });
       });
     });
 }
